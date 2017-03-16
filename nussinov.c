@@ -7,13 +7,15 @@
 #include "stdio.h"
 #include "string.h"
 
-#define NI -1
+#define EOF (-1)
+
+//code avec verification des appariements
 
 typedef struct app {
 	char base; 
 	int position;
 	int eng; 
-	int position_lie; 	
+	//int position_lie; 	
 }APP;
 
 APP** alloc_matrice (APP** tab, int size){	//allocation mémoire
@@ -26,12 +28,21 @@ APP** alloc_matrice (APP** tab, int size){	//allocation mémoire
 	return tab; 
 }
 
+void free_matrice (APP** tab, int size){
+	int i; 
+	
+	for (i = size-1; i >= size; --i)
+		free(tab[i]);
+		
+	free(tab);
+}
+
 APP** init_matrice (APP** tab, int size, char* seq){    //initialisation de la matrice
 	int i, j; 
 		
 	for (i = 0; i < size; ++i) {
 		for (j = 0; j < size; ++j){
-			tab[i][j].position_lie = -1;
+			//tab[i][j].position_lie = -1;
 			tab[i][j].position = j;
 			tab[i][j].base = seq[j];
 			if (j > i)
@@ -67,44 +78,44 @@ APP** remplir_matrice (APP** tab, int size, char* seq){	// remplir la matrice
 		j = cont;
 		for (i = 0; i < size; ++i){	
 			if (j > i) 	tab[i][j].eng = tab[i][j-1].eng;
-			for (k = i; k<j; ++k){								
-				if (liaison_possible(seq[j], seq[k]) ) {
-					energie = tab[i][k-1].eng+tab[k+1][j-1].eng+1;   
-					if (energie > tab[i][j].eng){
-						tab[i][j].eng = energie;
-						tab[i][j].position_lie = k;
+				for (k = i; k<j; ++k){								
+					if (liaison_possible(seq[j], seq[k]) ) {
+						energie = tab[i][k-1].eng+tab[k+1][j-1].eng+1;   
+						if (energie > tab[i][j].eng){
+							tab[i][j].eng = energie;
+							//tab[i][j].position_lie = k;
+						}
 					}
 				}
+				++j;
 			}
-			++j;
+			++cont;
 		}
-		i = 0; 
-		++cont;
-	}
 		
 	return tab;		
 }
 
 char* rebroussement ( APP** tab, int size){
-	char* par; 
-	int i, j; 
+	int i, j, k, c; 
+	c = 0;
+	char C[size];
+	
+	for(i = 0; i < size; ++i)
+		C[i] = '-';
+	
 	i = 0; 
-	j = size-1;
-	while (tab[i][j].eng != 0){
-		if (tab[i][j].position_lie != -1){
-			if (tab[i][j].position_lie < tab[i][j].position)
-				par = strcat(")", par);
-			else 
-				par = strcat("(", par);
+	j = size-1;		
+	while(i != j){
+		while(tab[i][j].eng > tab[i+1][j-1].eng && tab[i+1][j-1].eng >= 0){
+			C[j] = ')';
+			C[i] = '(';
 			++i;
-			--j;
+			--j;					
 		}
-		else {
-			par = strcat("-", par);
-			--j; 	
-		}
+		if (i != j) --j;			
 	}
-	return par; 		
+			
+	return C; 		
 }
 
 void verif (APP** tab, int size){
@@ -116,35 +127,30 @@ void verif (APP** tab, int size){
 			printf("%d ", tab[i][j].eng);
 		printf ("\n");	
 	}
-	
-	printf ("matrice .position_lie \n");
-	for(i = 0; i<size; i++){
-		for (j = 0; j<size; j++)
-			printf("%d ", tab[i][j].position_lie);
-		printf ("\n");	
-	}
 }
 	
 int main(/*int argc, char** argv*/){
 	APP **tab; 
-	char* seq;
-	char* par; 
+	char* seq = malloc(sizeof(char*));
+	char* str = malloc(sizeof(char*));
 	int size; 
 
-	seq = "GCUAGU";   //ex1 = gcuaguacguacucugcuagcu -> ()()()(())(-)--()()()-  //argv[1];
+	seq = "GCUAGUACGUACUCUGCUAGU";   				//argv[1];
 	size = strlen(seq); 
 	
-	tab = alloc_matrice(tab, size);						// -> OK
-	tab = init_matrice(tab, size, seq); 				// -> OK 
-	tab = remplir_matrice(tab, size, seq);				// -> pb .eng  -- pk T[1][1] = -1 ???  + .position_lie
-	//par = rebroussement(tab, size);
+	tab = alloc_matrice(tab, size);						
+	tab = init_matrice(tab, size, seq); 				
+	tab = remplir_matrice(tab, size, seq);			
 	
-	printf("la séquence : %s \n", seq);	
 	verif(tab, size);
-	//printf("%s \n", par);
+	str = rebroussement(tab, size);
+	
+	printf("%d \n", size);
+	printf("%s \n", seq);
+	printf("%s \n", str);
 
-	return 1; 
+	//free_matrice(tab, size);
+	
+	return 0; 
 }	
 	
-	
-
