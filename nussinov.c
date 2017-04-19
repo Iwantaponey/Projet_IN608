@@ -129,13 +129,30 @@ void verif (APP** tab, int size){
 	}
 }
 	
-int main(/*int argc, char** argv*/){
+char * recupere_seq(char * seq, char * nom_fichier)
+{
+	int i=0,fd,e=1; char c='a'; 
+	fd=open(nom_fichier, O_RDONLY);
+	while(e && c!='\0')
+	{
+		e=read(fd,&c,1);
+		if (c!='\0' && c!='\n' && c!=' ' && c!='\t')
+		{
+			seq[i]=c;
+			i++;
+		}
+	}
+	printf("seq= %s \n de taille %d", seq, strlen(seq));
+	return seq;
+}	
+	
+int main(int argc, char** argv){
 	APP **tab; 
 	char* seq = malloc(sizeof(char*));
 	char* str = malloc(sizeof(char*));
 	int size; 
 
-	seq = "GCUAGUACGUACUCUGCUAGU";   				//argv[1];
+	seq = recupere_seq(seq,argv[1]);   				//argv[1];
 	size = strlen(seq); 
 	
 	tab = alloc_matrice(tab, size);						
